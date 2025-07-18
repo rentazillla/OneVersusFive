@@ -1,0 +1,42 @@
+# performing DESeq2 differential expression analysis on the experimental groups
+
+# get the counts matrix for the decontaminated IP samples
+# this will be all of IP data (quantified gene counts from RNASeq) for the animals in the study
+counts.IP <- read.csv('IP_Counts_Minus_IN.csv')
+
+# remove the ctrl IP samples located in columns 3 and 20
+# note that column 1 from counts.IP is also removed
+# as it only contains row numbers which are added automatically
+# to any imported csv by R
+counts.IP <- counts.IP[, c(-1, -3, -20)] %>% column_to_rownames("GENEID") %>%
+  as.matrix()
+
+# metedata from the samples
+# this is all the information for identifying each animal used in the study
+samples.IP <- read.csv('IP_SampleInformation.csv')
+
+# plots of log2foldchange versus transcripts per kilobase million
+length.means <- data.frame('meanLength' = rowMeans(lengths.genes)) %>%
+  rownames_to_column('GENEID')
+
+# create DESeq2 dataset object using RNASeqQC library function
+library(RNASeqQC)
+dds <- make_dds(counts = counts.IP, metadata = samples.IP,
+                ah_record = "AH116340", design = ~Group)
+
+# make your reference comparison the group to determine as the basis for 
+# quantifying gene expression - here we use Sal One for building
+# a data frame later comparing the Sal Five to Sal One
+# for determination of fold change in gene expression
+dds$Group <- relevel(dds$Group, ref = "Sal.One")
+
+# remove genes if counts < 5 and replicates < 2
+dds <- filter_genes(dds, min_count = 5, min_rep = 2)
+
+# run the DESeq
+dds <- DESeq(dds)
+
+# creating the Saline Five vs Saline One DESeq2 object
+# setting the contrast setting gives the correct comparison of Sal Five to Sal One for determination
+# of differential gene expression
+res.SalFive_vs_SalOne <- as.data.frame(results(dds, contrast = c('Group', 'Sal.Five', 'Sal.One')))
