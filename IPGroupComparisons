@@ -40,3 +40,13 @@ dds <- DESeq(dds)
 # setting the contrast setting gives the correct comparison of Sal Five to Sal One for determination
 # of differential gene expression
 res.SalFive_vs_SalOne <- as.data.frame(results(dds, contrast = c('Group', 'Sal.Five', 'Sal.One')))
+
+# Fent Five vs Fent One
+res.FentFive_vs_FentOne <- as.data.frame(results(dds, contrast = c('Group', 'Fent.Five', 'Fent.One')))
+
+# Fent Five vs Sal Five
+res.FentFive_vs_SalFive <- as.data.frame(results(dds, contrast = c('Group', 'Fent.Five', 'Sal.Five'))) 
+
+# Fent One vs Sal One
+res.FentOne_vs_SalOne <- as.data.frame(results(dds, contrast = c('Group', 'Fent.One', 'Sal.One')))
+
